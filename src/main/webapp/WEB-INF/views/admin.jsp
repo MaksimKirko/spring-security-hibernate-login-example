@@ -1,19 +1,31 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@page session="true"%>
 <html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-	<title>Admin page</title>
-	<link href="<c:url value='/static/css/bootstrap.css' />" rel="stylesheet"></link>
-	<link href="<c:url value='/static/css/app.css' />" rel="stylesheet"></link>
-</head>
 <body>
-	<div class="success">
-		Dear <strong>${user}</strong>, Welcome to Admin Page.
-		<br/>
-		Would you like to <a href="<c:url value='/newUser' />">Add Some Users</a> to keep yourself busy?
-		<br/>
-		<a href="<c:url value="/logout" />">Logout</a>
-	</div>
+<h1>Title : ${title}</h1>
+<h1>Message : ${message}</h1>
+
+<c:url value="/j_spring_security_logout" var="logoutUrl" />
+
+<!-- csrf for log out-->
+<form action="${logoutUrl}" method="post" id="logoutForm">
+	<input type="hidden"
+		   name="${_csrf.parameterName}"
+		   value="${_csrf.token}" />
+</form>
+
+<script>
+	function formSubmit() {
+		document.getElementById("logoutForm").submit();
+	}
+</script>
+
+<c:if test="${pageContext.request.userPrincipal.name != null}">
+	<h2>
+		Welcome : ${pageContext.request.userPrincipal.name} | <a
+			href="javascript:formSubmit()"> Logout</a>
+	</h2>
+</c:if>
+
 </body>
 </html>

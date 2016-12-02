@@ -6,6 +6,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import com.websystique.springsecurity.model.Role;
+import com.websystique.springsecurity.model.Ticket;
+import com.websystique.springsecurity.model.action.ActionEnum;
+import com.websystique.springsecurity.model.violation.ViolationEnum;
+import com.websystique.springsecurity.service.ITicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,115 +24,122 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.websystique.springsecurity.model.User;
-import com.websystique.springsecurity.model.UserProfile;
-import com.websystique.springsecurity.service.UserProfileService;
-import com.websystique.springsecurity.service.UserService;
+import com.websystique.springsecurity.service.IRoleService;
+import com.websystique.springsecurity.service.IUserService;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class HelloWorldController {
 
-	@Autowired
-	UserProfileService userProfileService;
-	
-	@Autowired
-	UserService userService;
-	
-	@RequestMapping(value = { "/", "/home" }, method = RequestMethod.GET)
-	public String homePage(ModelMap model) {
-		model.addAttribute("greeting", "Hi, Welcome to mysite");
-		return "welcome";
-	}
+    @Autowired
+    IRoleService IRoleService;
 
-	@RequestMapping(value = "/admin", method = RequestMethod.GET)
-	public String adminPage(ModelMap model) {
-		model.addAttribute("user", getPrincipal());
-		return "admin";
-	}
+    @Autowired
+    IUserService IUserService;
 
-	@RequestMapping(value = "/db", method = RequestMethod.GET)
-	public String dbaPage(ModelMap model) {
-		model.addAttribute("user", getPrincipal());
-		return "dba";
-	}
+    @Autowired
+    ITicketService ticketService;
 
-	@RequestMapping(value = "/Access_Denied", method = RequestMethod.GET)
-	public String accessDeniedPage(ModelMap model) {
-		model.addAttribute("user", getPrincipal());
-		return "accessDenied";
-	}
+    @RequestMapping(value = { "/", "/welcome**" }, method = RequestMethod.GET)
+    public ModelAndView welcomePage() {
 
-	@RequestMapping(value = "/login", method = RequestMethod.GET)
-	public String loginPage() {
-		return "login";
-	}
+        ModelAndView model = new ModelAndView();
+        /*model.addObject("title", "Spring Security Hello World");
+        model.addObject("message", "This is welcome page!");*/
+        model.setViewName("hello");
+        return model;
 
-	@RequestMapping(value="/logout", method = RequestMethod.GET)
-	public String logoutPage (HttpServletRequest request, HttpServletResponse response) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth != null){    
-			new SecurityContextLogoutHandler().logout(request, response, auth);
-		}
-		return "redirect:/login?logout";
-	}
+    }
 
-	
-	@RequestMapping(value = "/newUser", method = RequestMethod.GET)
-	public String newRegistration(ModelMap model) {
-		User user = new User();
-		model.addAttribute("user", user);
-		return "newuser";
-	}
+    @RequestMapping(value = "/admin**", method = RequestMethod.GET)
+    public ModelAndView adminPage() {
 
-	/*
-	 * This method will be called on form submission, handling POST request It
-	 * also validates the user input
-	 */
-	@RequestMapping(value = "/newUser", method = RequestMethod.POST)
-	public String saveRegistration(@Valid User user,
-			BindingResult result, ModelMap model) {
+        ModelAndView model = new ModelAndView();
+        model.addObject("title", "Spring Security Hello World");
+        model.addObject("message", "This is protected page!");
+        model.setViewName("admin");
 
-		if (result.hasErrors()) {
-			System.out.println("There are errors");
-			return "newuser";
-		}
-		userService.save(user);
-		
-		System.out.println("First Name : "+user.getFirstName());
-		System.out.println("Last Name : "+user.getLastName());
-		System.out.println("SSO ID : "+user.getSsoId());
-		System.out.println("Password : "+user.getPassword());
-		System.out.println("Email : "+user.getEmail());
-		System.out.println("Checking UsrProfiles....");
-		if(user.getUserProfiles()!=null){
-			for(UserProfile profile : user.getUserProfiles()){
-				System.out.println("Profile : "+ profile.getType());
-			}
-		}
-		
-		model.addAttribute("success", "User " + user.getFirstName() + " has been registered successfully");
-		return "registrationsuccess";
-	}
+        return model;
 
-	
-	
-	
-	private String getPrincipal(){
-		String userName = null;
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
 
-		if (principal instanceof UserDetails) {
-			userName = ((UserDetails)principal).getUsername();
-		} else {
-			userName = principal.toString();
-		}
-		return userName;
-	}
-	
-	
-	
-	@ModelAttribute("roles")
-	public List<UserProfile> initializeProfiles() {
-		return userProfileService.findAll();
-	}
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public ModelAndView login(
+            @RequestParam(value = "error", required = false) String error,
+            @RequestParam(value = "logout", required = false) String logout) {
+
+
+
+        ModelAndView model = new ModelAndView();
+        if (error != null) {
+            model.addObject("error", "Неверное имя пользователя или пароль!");
+        }
+
+        if (logout != null) {
+            model.addObject("msg", "Вы успешно вышли из аккаунта.");
+        }
+        model.setViewName("login");
+
+        return model;
+
+    }
+
+    @RequestMapping(value = "/app**", method = RequestMethod.GET)
+    public ModelAndView appPage() {
+
+        List<Ticket> inputTickets = ticketService.getAll();
+
+        List<String> rusViolations = ViolationEnum.getRusViolationsList();
+
+        List<String> rusActions = ActionEnum.getRusActionList();
+
+        ModelAndView model = new ModelAndView();
+
+        model.addObject("rusActions", rusActions);
+        model.addObject("rusViolations", rusViolations);
+        model.addObject("inputTickets",inputTickets);
+        model.setViewName("app");
+
+        return model;
+
+    }
+
+
+    @RequestMapping(value = "/Access_Denied", method = RequestMethod.GET)
+    public String accessDeniedPage(ModelMap model) {
+        model.addAttribute("user", getPrincipal());
+        return "accessDenied";
+    }
+//
+//
+//
+//    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+//    public String logoutPage(HttpServletRequest request, HttpServletResponse response) {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        if (auth != null) {
+//            new SecurityContextLogoutHandler().logout(request, response, auth);
+//        }
+//        return "redirect:/login?logout";
+//    }
+
+
+    private String getPrincipal() {
+        String userName = null;
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            userName = ((UserDetails) principal).getUsername();
+        } else {
+            userName = principal.toString();
+        }
+        return userName;
+    }
+
+
+    @ModelAttribute("roles")
+    public List<Role> initializeProfiles() {
+        return IRoleService.getAll();
+    }
 
 }

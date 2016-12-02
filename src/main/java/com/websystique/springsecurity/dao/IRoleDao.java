@@ -1,0 +1,18 @@
+package com.websystique.springsecurity.dao;
+
+import java.util.List;
+
+import com.websystique.springsecurity.model.Role;
+
+public interface IRoleDao {
+
+	List<Role> getAll();
+
+	Role getByType(String type);
+
+	Role getById(Long id);
+
+	void save(Role role);
+
+	void delete(Long id);
+}

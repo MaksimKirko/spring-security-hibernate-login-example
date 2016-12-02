@@ -6,19 +6,18 @@
     http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd">
 
 	<http auto-config="true">
+		<intercept-url pattern="/app**" access="hasRole('ADMIN')" />
 		<intercept-url pattern="/home" access="permitAll" />
 		<intercept-url pattern="/" access="permitAll" />
 		<intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />
-		<intercept-url pattern="/newuser" access="hasRole('ADMIN')" />
-		<intercept-url pattern="/db/**" access="hasRole('ADMIN') and hasRole('DBA')" />
 
 		<form-login  login-page="/login"
-                     username-parameter="ssoId"
+                     default-target-url="/welcome"
+                     authentication-failure-url="/login?error"
+                     username-parameter="login"
                      password-parameter="password" />
-       	<access-denied-handler error-page="/Access_Denied" />              
 		<csrf />
 	</http>
-
 
 	<beans:bean id="bcryptEncoder"
 		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
